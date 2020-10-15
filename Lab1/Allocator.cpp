@@ -64,6 +64,8 @@ void *Allocator::mem_alloc(int size) {
 		}
 	}
 
+	std::cout << " Beginning of allocated block: " << result << " Size of allocated block: " << size << std::endl;
+	
 	return result;
 }
 
@@ -85,9 +87,12 @@ void Allocator::mem_free(void* addr) {
 
 	char* nnext = next + next_size;
 
+	std::cout << " Block with beginning at: " << addr << " deallocated successfully" << std::endl;
+
 	if (prev_size == -1 && *next == 0) {
 		int new_block_size = *(int*)(block + 5) + *(int*)(next + 5);
 		*(int*)(block + 5) = new_block_size;
+
 		return;
 	}
 
@@ -114,7 +119,6 @@ void Allocator::mem_free(void* addr) {
 
 		return;
 	}
-
 }
 
 void *Allocator::mem_realloc(void* addr, int size) {
@@ -145,6 +149,8 @@ void *Allocator::mem_realloc(void* addr, int size) {
 		*c = data[i];
 		c++;
 	}
+
+	std::cout << " Block with beginning at " << addr << " reallocated successfully to " << (void*) c << " with size" << size << std::endl;
 
 	return (void*) c;
 }
