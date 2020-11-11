@@ -8,7 +8,7 @@ enum class StateOfPage {
 	Multiple,
 };
 
-struct Header {
+struct PageHeader {
 	void* startPosition;
 	StateOfPage state;
 	unsigned int size;
@@ -22,12 +22,12 @@ struct BlockHeader {
 class PageAllocator {
 public:
 	PageAllocator(unsigned int size);
+	~PageAllocator();
+
 	void *mem_alloc(unsigned int size);
 	void *mem_realloc(void* addr, unsigned int size);
 	void mem_free(void* addr);
-	void mem_free();
 	void mem_dump();
-	~PageAllocator();
 
 private:
 	void* startPosition;
@@ -36,9 +36,10 @@ private:
 	unsigned int numberOfPages;
 
 	std::vector<void*> freePagesList;
-	std::map<void*, Header> headersMap;
+	std::map<void*, PageHeader> headersMap;
 	std::map<unsigned int, std::vector<void*>> freeClassPagesMap;
-
+	
+	void mem_free();
 	void* getPage(void* addr);
 	void* divideFreePage(unsigned int classSize);
 	void* allocateBlock(void* page);

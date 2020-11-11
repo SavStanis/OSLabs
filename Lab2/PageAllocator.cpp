@@ -15,7 +15,7 @@ PageAllocator::PageAllocator(unsigned int  size) {
 		void* page = (void*)((char*)(startPosition) + (i * PAGE_SIZE));
 		freePagesList.push_back(page);
 
-		Header header = Header();
+		PageHeader header = PageHeader();
 		header.state = StateOfPage::Free;
 
 		headersMap[page] = header;
@@ -29,9 +29,10 @@ PageAllocator::PageAllocator(unsigned int  size) {
 
 void *PageAllocator::mem_alloc(unsigned int size) {
 	if (size < PAGE_SIZE / 2) {
+
 		// getting of the page class size 
-		unsigned int next = (unsigned int) pow (2, ceil(log(size) / log(2)));
-		unsigned int classSize = (MIN_ALLOC_SIZE > next) ? MIN_ALLOC_SIZE : next;
+		unsigned int nextClassSize = (unsigned int) pow (2, ceil(log(size) / log(2)));
+		unsigned int classSize = (MIN_ALLOC_SIZE > nextClassSize) ? MIN_ALLOC_SIZE : nextClassSize;
 
 		// getting of class page
 		void* page;
@@ -41,10 +42,10 @@ void *PageAllocator::mem_alloc(unsigned int size) {
 			page = nullptr;
 		}
 		else {
-			page = pages.front();
+			page = pages.back();
 		}
 
-		if (page == nullptr) {
+		if (page == nullptr || headersMap[page].freeBlocksNumber == 0) {
 			page = divideFreePage(classSize);
 		}
 
@@ -55,7 +56,7 @@ void *PageAllocator::mem_alloc(unsigned int size) {
 }
 
 void *PageAllocator::allocateBlock(void *page) {
-	Header header = headersMap[page];
+	PageHeader header = headersMap[page];
 
 	void* addr = header.startPosition;
 	void* next = ((BlockHeader*) addr)->nextBlock;
@@ -84,7 +85,7 @@ void *PageAllocator::divideFreePage(unsigned int classSize) {
 	void* page = freePagesList.back();
 	freePagesList.pop_back();
 
-	Header header = headersMap[page];
+	PageHeader header = headersMap[page];
 
 	header.size = classSize;
 	header.state = StateOfPage::Divided;
@@ -95,6 +96,7 @@ void *PageAllocator::divideFreePage(unsigned int classSize) {
 	for (int i = 0; i < header.freeBlocksNumber - 1; ++i) {
 		void* block = (int *) ((char*) page + i * header.size);
 		BlockHeader* blockHeader = (BlockHeader*) block;
+
 		void* nextBlock = (int *)((char*) page + header.size * (i + 1));
 		blockHeader->nextBlock = nextBlock;
 	}
@@ -115,11 +117,12 @@ void *PageAllocator::allocateSeveralPages(unsigned int size) {
 
 	for (int i = 0; i < numberOfPages; ++i) {
 
-		void* page = (void*)((char*)(startPosition) + (i * PAGE_SIZE));
-		Header header = headersMap[page];
+		void* page = (void*) ((char*) (startPosition) + (i * PAGE_SIZE));
+		PageHeader header = headersMap[page];
 
 		if (header.state == StateOfPage::Free) {
 			pages.push_back(page);
+
 			if (pages.size() == neededPagesAmount) {
 				break;
 			}
@@ -131,9 +134,8 @@ void *PageAllocator::allocateSeveralPages(unsigned int size) {
 		return nullptr;
 	}
 	
-	for (void* page : pages)
-	{
-		Header header = headersMap[page];
+	for (void* page : pages) {
+		PageHeader header = headersMap[page];
 
 		header.state = StateOfPage::Multiple;
 		header.freeBlocksNumber = neededPagesAmount;
@@ -153,7 +155,7 @@ void* PageAllocator::getPage(void* addr) {
 
 void PageAllocator::mem_free(void *addr) {
 	void* page = getPage(addr);
-	Header header = headersMap[page];
+	PageHeader header = headersMap[page];
 
 	if (header.state == StateOfPage::Divided) {
 		freeBlock(page, addr);
@@ -168,7 +170,7 @@ void PageAllocator::freeSeveralPages(void *firstPage, unsigned int amount)
 	for (int i = 0; i < amount; ++i)
 	{
 		void* page = ((char*) (firstPage) + (i * PAGE_SIZE));
-		Header header = headersMap[page];
+		PageHeader header = headersMap[page];
 
 		header.state = StateOfPage::Free;
 		headersMap[page] = header;
@@ -178,7 +180,7 @@ void PageAllocator::freeSeveralPages(void *firstPage, unsigned int amount)
 }
 
 void PageAllocator::freeBlock(void* page, void* addr) {
-	Header header = headersMap[page];
+	PageHeader header = headersMap[page];
 
 	void* next = header.startPosition;
 	header.startPosition = addr;
@@ -201,7 +203,7 @@ void PageAllocator::mem_free() {
 
 	for (int i = 0; i < numberOfPages; ++i) {
 		void* page = (void*) ((char*) (startPosition) + (i * PAGE_SIZE));
-		Header header = headersMap[page];
+		PageHeader header = headersMap[page];
 
 		header.state = StateOfPage::Free;
 		headersMap[page] = header;
@@ -253,7 +255,7 @@ void PageAllocator::mem_dump() {
 
 	for (int i = 0; i < numberOfPages; ++i) {
 		void* page = (void*) ((char*) (startPosition) + (i * PAGE_SIZE));
-		Header header = headersMap[page];
+		PageHeader header = headersMap[page];
 
 		std::string state;
 		std::string classSize = "";
@@ -272,7 +274,7 @@ void PageAllocator::mem_dump() {
 			freeSpace = "\n-----Number of free blocks:  " + std::to_string(header.freeBlocksNumber);
 		}
 
-		std::cout << i + 1 << ". AddressOfPage:\t" << page << "\tType:\t" << state << freeSpace << classSize << std::endl;
+		std::cout << i + 1 << ". Address:\t" << page << "\tType:\t" << state << freeSpace << classSize << std::endl;
 	}
 	std::cout << std::endl;
 }
