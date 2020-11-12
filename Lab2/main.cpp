@@ -5,12 +5,13 @@ using namespace std;
 
 int main() {
 	
-	Allocator alloc = Allocator(16000);
+	Allocator allocator(15000);
 
-	void* test7 = alloc.mem_alloc(3000);
-	alloc.mem_dump();
-	alloc.mem_free(test7);
-	alloc.mem_dump();
+	void* test1 = allocator.mem_alloc(300);
+	void* test2 = allocator.mem_alloc(3000);
+	allocator.mem_free(test1);
+
+	allocator.mem_dump();
 
 
 	system("pause");

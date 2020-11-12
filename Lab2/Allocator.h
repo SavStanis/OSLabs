@@ -27,7 +27,7 @@ public:
 
 	void* mem_alloc(unsigned int size);
 	void mem_free(void* addr);
-	//void mem_realloc(void* addr, unsigned int size);
+	void* mem_realloc(void* addr, unsigned int size);
 	void mem_dump();
 private:
 	void* memory;

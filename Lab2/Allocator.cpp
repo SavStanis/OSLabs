@@ -254,6 +254,29 @@ Allocator::~Allocator() {
 	mem_free();
 }
 
+
+void* Allocator::mem_realloc(void *addr, unsigned int size) {
+	void* newAddr = mem_alloc(size);
+
+	if (newAddr == nullptr) {
+		return nullptr;
+	}
+
+	int oldPageNumber = ((char*)addr - (char*)memory) / PAGE_SIZE;
+	void* oldPage = (void*)(oldPageNumber * PAGE_SIZE + (char*)memory);
+
+	int newPageNumber = ((char*)newAddr - (char*)memory) / PAGE_SIZE;
+	void* newPage = (void*)(newPageNumber * PAGE_SIZE + (char*)memory);
+
+	int oldSize = pageDescribersMap[oldPage].blocksDescriber.classSize;
+	int newSize = pageDescribersMap[newPage].blocksDescriber.classSize;
+
+	(oldSize > newSize) ? memcpy(addr, newAddr, newSize) : memcpy(addr, newAddr, oldSize);
+	mem_free(addr);
+
+	return newAddr;
+}
+
 void Allocator::mem_dump() {
 	std::cout << "-----------------------GENERAL--INFORMATION--------------------------" << std::endl;
 
@@ -265,7 +288,7 @@ void Allocator::mem_dump() {
 
 	for (int i = 0; i < pagesAmount; i++) {
 		int shift = i * PAGE_SIZE;
-		void* page = (void*)((char*)memory + shift);
+		void* page = (void*)((char*) memory + shift);
 
 		PageDescriber pageDescriber = pageDescribersMap[page];
 
