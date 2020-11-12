@@ -12,7 +12,7 @@ PageAllocator::PageAllocator(unsigned int  size) {
 	startPosition = malloc(size);
 	
 	for (int i = 0; i < numberOfPages; ++i) {
-		void* page = (void*)((char*)(startPosition) + (i * PAGE_SIZE));
+		void* page = (void*) ((char*) (startPosition) + (i * PAGE_SIZE));
 		freePagesList.push_back(page);
 
 		PageHeader header = PageHeader();
@@ -165,10 +165,8 @@ void PageAllocator::mem_free(void *addr) {
 	}
 }
 
-void PageAllocator::freeSeveralPages(void *firstPage, unsigned int amount)
-{
-	for (int i = 0; i < amount; ++i)
-	{
+void PageAllocator::freeSeveralPages(void *firstPage, unsigned int amount) {
+	for (int i = 0; i < amount; ++i) {
 		void* page = ((char*) (firstPage) + (i * PAGE_SIZE));
 		PageHeader header = headersMap[page];
 

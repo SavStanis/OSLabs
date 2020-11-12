@@ -1,6 +1,5 @@
 #include <vector>
 #include <map>
-#include <cmath>
 
 enum class StateOfPage {
 	Free,
