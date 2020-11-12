@@ -1,6 +1,7 @@
 #include "Allocator.h"
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 Allocator::Allocator(unsigned int size) {
 	freePagesAmount = pagesAmount = ceil((double) size / PAGE_SIZE);
@@ -143,12 +144,16 @@ void* Allocator::allocMultiple(int size) {
 		return nullptr;
 	}
 
+
 	for (void* page : allocatedPages) {
 		PageDescriber pageDescriber = pageDescribersMap[page];
 		pageDescriber.state = 2;
 		pageDescriber.blocksDescriber.classSize = PAGE_SIZE * neededPagesAmount;
 
 		pageDescribersMap[page] = pageDescriber;
+
+		freePages.erase(std::remove(freePages.begin(), freePages.end(), page), freePages.end());
+		freePagesAmount--;
 	}
 
 	return allocatedPages.front();
@@ -172,6 +177,9 @@ void Allocator::mem_free(void* addr) {
 			multiPageDescriber.state = 0;
 			multiPageDescriber.blocksDescriber.classSize = 0;
 			pageDescribersMap[multiPage] = multiPageDescriber;
+
+			freePages.push_back(multiPage);
+			freePagesAmount++;
 		}
 		return;
 	}
@@ -212,6 +220,8 @@ void Allocator::mem_free(void* addr) {
 			blocksDescriber.firstFreeBlock = page;
 			blocksDescriber.freeBlocksAmount = 0;
 			blocksDescriber.classSize = 0;
+			freePages.push_back(page);
+			freePagesAmount++;
 		}
 
 		pageDescriber.blocksDescriber = blocksDescriber;
