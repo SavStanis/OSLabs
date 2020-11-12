@@ -203,12 +203,46 @@ void Allocator::mem_free(void* addr) {
 			}
 		}
 
+		if (blocksAmount == blocksDescriber.freeBlocksAmount) {
+			pageDescriber = PageDescriber();
+			pageDescriber.state = 0;
+			pageDescriber.page = page;
+
+			blocksDescriber = BlocksDescriber();
+			blocksDescriber.firstFreeBlock = page;
+			blocksDescriber.freeBlocksAmount = 0;
+			blocksDescriber.classSize = 0;
+		}
+
 		pageDescriber.blocksDescriber = blocksDescriber;
 		pageDescribersMap[page] = pageDescriber;
 	}
 }
 
+void Allocator::mem_free() {
 
+	for (int i = 0; i < pagesAmount; i++) {
+		int shift = i * PAGE_SIZE;
+		void* page = (void*)((char*) memory + shift);
+
+		PageDescriber pageDescriber = PageDescriber();
+		pageDescriber.state = 0;
+		pageDescriber.page = page;
+
+		BlocksDescriber blockDescriber = BlocksDescriber();
+		blockDescriber.firstFreeBlock = page;
+		blockDescriber.freeBlocksAmount = 0;
+		blockDescriber.classSize = 0;
+		pageDescriber.blocksDescriber = blockDescriber;
+
+		pageDescribersMap[page] = pageDescriber;
+		freePages.push_back(page);
+	}
+}
+
+Allocator::~Allocator() {
+	mem_free();
+}
 
 void Allocator::mem_dump() {
 	std::cout << "-----------------------GENERAL--INFORMATION--------------------------" << std::endl;

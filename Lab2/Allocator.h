@@ -23,7 +23,7 @@ struct PageDescriber {
 class Allocator {
 public:
 	Allocator(unsigned int size);
-	//~Allocator();
+	~Allocator();
 
 	void* mem_alloc(unsigned int size);
 	void mem_free(void* addr);
@@ -38,5 +38,6 @@ private:
 	std::map<void*, PageDescriber> pageDescribersMap;
 	void* allocBlock(int size);
 	void* allocMultiple(int size);
+	void mem_free();
 
 };
