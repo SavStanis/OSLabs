@@ -42,7 +42,7 @@ void* Allocator::allocBlock(int size) {
 
 	for (int i = 0; i < pagesAmount; i++) {
 		int shift = i * PAGE_SIZE;
-		void* page = (void*)((char*)memory + shift);
+		void* page = (void*) ((char*) memory + shift);
 
 		PageDescriber pageDescriber = pageDescribersMap[page];
 
@@ -54,7 +54,18 @@ void* Allocator::allocBlock(int size) {
 
 		if (classSize == blocksDescriber.classSize && blocksDescriber.freeBlocksAmount > 0) {
 			allocatedBlock = blocksDescriber.firstFreeBlock;
-			blocksDescriber.firstFreeBlock = (void*) ((char*) blocksDescriber.firstFreeBlock + blocksDescriber.classSize);
+			blocksDescriber.blocksMap[allocatedBlock] = 1;
+
+			for (int i = 0; i < blocksDescriber.freeBlocksAmount; i++) {
+				int shift = i * blocksDescriber.classSize;
+				void* block = (void*)((char*)page + shift);
+
+				if (blocksDescriber.blocksMap[block] == 0) {
+					blocksDescriber.firstFreeBlock = block;
+					break;
+				}
+			}
+
 			blocksDescriber.freeBlocksAmount--;
 
 			pageDescriber.blocksDescriber = blocksDescriber;
@@ -78,9 +89,19 @@ void* Allocator::allocBlock(int size) {
 
 		pageDescriber.state = 1;
 
+
 		blockDescriber.classSize = classSize;
 		blockDescriber.freeBlocksAmount = PAGE_SIZE / classSize;
+
+		for (int i = 0; i < blockDescriber.freeBlocksAmount; i++) {
+			int shift = i * blockDescriber.classSize;
+			void* block = (void*)((char*)page + shift);
+
+			blockDescriber.blocksMap[block] = 0;
+		}
+
 		allocatedBlock = blockDescriber.firstFreeBlock;
+		blockDescriber.blocksMap[blockDescriber.firstFreeBlock] = 1;
 		blockDescriber.firstFreeBlock = (void*)((char*) blockDescriber.firstFreeBlock + blockDescriber.classSize);
 		blockDescriber.freeBlocksAmount--;
 
@@ -132,6 +153,62 @@ void* Allocator::allocMultiple(int size) {
 
 	return allocatedPages.front();
 } 
+
+void Allocator::mem_free(void* addr) {
+	int pageNumber = ((char*) addr - (char*) memory) / PAGE_SIZE;
+	void* page = (void*) (pageNumber * PAGE_SIZE + (char*) memory);
+
+	PageDescriber pageDescriber = pageDescribersMap[page];
+
+	if (pageDescriber.state == 2) {
+		int pagesAmount = pageDescriber.blocksDescriber.classSize / PAGE_SIZE;
+
+		for (int i = 0; i < pagesAmount; i++) {
+			int shift = i * PAGE_SIZE;
+			void* multiPage = (void*) ((char*) page + shift);
+
+			PageDescriber multiPageDescriber = pageDescribersMap[multiPage];
+
+			multiPageDescriber.state = 0;
+			multiPageDescriber.blocksDescriber.classSize = 0;
+			pageDescribersMap[multiPage] = multiPageDescriber;
+		}
+		return;
+	}
+
+	if (pageDescriber.state == 1) {
+
+		BlocksDescriber blocksDescriber = pageDescriber.blocksDescriber;
+
+		int blocksAmount = PAGE_SIZE / blocksDescriber.classSize;
+		int blockSize = blocksDescriber.classSize;
+
+		int blockNumber = ((char*) addr - (char*) page) / blockSize;
+		void* block = (void*)(blockNumber * blockSize + (char*)page);
+
+		bool blockState = blocksDescriber.blocksMap[block];
+
+		if (blockState) {
+			blocksDescriber.blocksMap[block] = 0;
+			blocksDescriber.freeBlocksAmount++;
+
+			for (int i = 0; i < blocksDescriber.freeBlocksAmount; i++) {
+				int shift = i * blocksDescriber.classSize;
+				void* block = (void*)((char*)page + shift);
+
+				if (blocksDescriber.blocksMap[block] == 0) {
+					blocksDescriber.firstFreeBlock = block;
+					break;
+				}
+			}
+		}
+
+		pageDescriber.blocksDescriber = blocksDescriber;
+		pageDescribersMap[page] = pageDescriber;
+	}
+}
+
+
 
 void Allocator::mem_dump() {
 	std::cout << "-----------------------GENERAL--INFORMATION--------------------------" << std::endl;

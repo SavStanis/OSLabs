@@ -10,6 +10,7 @@ struct BlocksDescriber {
 	void* firstFreeBlock;
 	int classSize;
 	int freeBlocksAmount;
+	std::map<void*, bool> blocksMap;
 };
 
 struct PageDescriber {
@@ -25,7 +26,7 @@ public:
 	//~Allocator();
 
 	void* mem_alloc(unsigned int size);
-	//void mem_free(void* addr);
+	void mem_free(void* addr);
 	//void mem_realloc(void* addr, unsigned int size);
 	void mem_dump();
 private:
