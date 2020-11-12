@@ -94,10 +94,10 @@ void *PageAllocator::divideFreePage(unsigned int classSize) {
 	headersMap[page] = header;
 
 	for (int i = 0; i < header.freeBlocksNumber - 1; ++i) {
-		void* block = (int *) ((char*) page + i * header.size);
+		void* block = (void *) ((char*) page + i * header.size);
 		BlockHeader* blockHeader = (BlockHeader*) block;
 
-		void* nextBlock = (int *)((char*) page + header.size * (i + 1));
+		void* nextBlock = (void *)((char*) page + header.size * (i + 1));
 		blockHeader->nextBlock = nextBlock;
 	}
 
