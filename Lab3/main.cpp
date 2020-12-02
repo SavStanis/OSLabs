@@ -5,8 +5,8 @@
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 32
 
-#define MIN_DURATION 100
-#define MAX_DURATION 300
+#define MIN_DURATION 1
+#define MAX_DURATION 50
 
 using namespace std;
 
@@ -31,7 +31,7 @@ int main() {
 
 	ProcessService processService;
 
-	std::vector<Process*> processList = generateProcesses(20);
+	std::vector<Process*> processList = generateProcesses(500);
 
 	for (Process* process : processList) {
 		processService.add(process);

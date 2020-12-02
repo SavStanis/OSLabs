@@ -8,6 +8,11 @@ struct Process {
 	int priority;
 };
 
+struct PriorityHeader {
+	int priority;
+	int numberOfProcesses;
+	int waitingTimeSum;
+};
 
 class ProcessService {
 public:

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <map>
 
 ProcessService::ProcessService() {
 	head = nullptr;
@@ -67,6 +68,11 @@ void ProcessService::print() {
 
 void ProcessService::start() {
 	int timeCounter = 0;
+	int processCounter = 0;
+	int waitingTimeCounter = 0;
+
+	std::map<int, PriorityHeader> priorityMap;
+
 
 	Process* process = getFirst();
 	removeFirst();
@@ -80,13 +86,39 @@ void ProcessService::start() {
 	std::cout << "-----------+--------------------+-------------------------+---------------------" << std::endl;
 
 	while (process != nullptr) {
+		if (priorityMap.count(process->priority) == 0) {
+			PriorityHeader priorityHeader;
+
+			priorityHeader.priority = process->priority;
+			priorityHeader.numberOfProcesses = 1;
+			priorityHeader.waitingTimeSum = timeCounter;
+
+			priorityMap[process->priority] = priorityHeader;
+		}
+		else {
+			PriorityHeader priorityHeader = priorityMap[process->priority];
+			priorityHeader.numberOfProcesses++;
+			priorityHeader.waitingTimeSum += timeCounter;
+
+			priorityMap[process->priority] = priorityHeader;
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(process->duration));
 
 		std::cout << process->id << "\t|" << timeCounter << "ms\t\t|" << process->priority << "\t\t|" << process->duration << std::endl;
 
 		timeCounter += process->duration;
+		processCounter++;
+		waitingTimeCounter += timeCounter;
 
 		process = getFirst();
 		removeFirst();
+	}
+
+	std::cout << "Average waiting time: " << waitingTimeCounter / processCounter << std::endl;
+	std::cout << "----------------------------------" << std::endl;
+
+	for (std::pair<int, PriorityHeader> pair : priorityMap) {
+		std::cout << "Priority: " << pair.first << " | Average waiting time: " << pair.second.waitingTimeSum / pair.second.numberOfProcesses << std::endl;
 	}
 }
