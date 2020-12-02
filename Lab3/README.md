@@ -21,8 +21,11 @@ processService.start();
 ```
 
 Here you can see id, priority, duration of each process and the time that each process spent in the queue.
+
 <img src='./img/process_execution.png'>
+
 Here you can see the average waiting time of the processes grouped by priority.
+
 <img src='./img/average_waiting_time.png'>
 
 On the first graph below you can see the dependency between number of processes and the average waiting time. 
