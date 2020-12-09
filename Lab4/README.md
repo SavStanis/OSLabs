@@ -1,4 +1,4 @@
-# Lab 3: Hungarian algorithm for process scheduling
+# Lab 4: Hungarian algorithm for process scheduling
 
 Here you can find my implementation of the Hungarian algorithm for process scheduling.
 
