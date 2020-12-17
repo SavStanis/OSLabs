@@ -1,6 +1,6 @@
 # Lab 6: Profiling
 
-The task was to the program, optimize it and repeat profiling. Var: 13 (27 mod 15 + 1)
+The task was to profile the program, optimize it and repeat profiling. Var: 13 (27 mod 15 + 1)
 
 Since we want to profile our program with gprof, we have to provide additional parameter to the GCC command. It will look like this:
 
